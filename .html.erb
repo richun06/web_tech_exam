@@ -1,0 +1,48 @@
+<!--【以下の要件を満たしたアプリケーションを作成・提出】
+    ①Web技術入門シリーズカリキュラムで作成したWebアプリケーションに機能追加する形で実装を行うこと
+    ②/ というURL(DocumentRootの値）で開く任意のHTMLページを一枚”新規”で作成すること。
+    （Not Foundを出さないようにすること。ページの内容について詳細は問わないが、必ず新しい”.html.erbファイル”を作成し表示させること。）
+    ③ボタンを押すと、譲渡先が自家消費ではないもののgoyaの情報を載せたページが表示される機能を実装すること
+    ④ボタンを押すと、品質が悪いもの（false）のgoyaの情報を載せたページが表示される機能を実装すること-->
+
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  </head>
+  <body>
+    <h2>譲渡先が自家消費ではないもののgoyaの情報を載せたページが表示される</h2>
+    <h2>品質が悪いもの（false）のgoyaの情報を載せたページが表示される</h2>
+
+    <% require 'pg' %>
+    <% connection = PG::connect(dbname: "goya") %>
+    <% connection.internal_encoding = "UTF-8" %>
+
+    <% result = connection.exec("select * from crops where give_for!='自家消費';") %>
+    <% data = [] %>
+
+    <% result.each do |record| %>
+      <%  data << "譲渡先：#{record["give_for"]} 大きさ：#{record["weight"]}" %>
+    <% end %>
+
+    <form action="goya.cgi" method="POST">
+      下記のボタンを押すと、ゴーヤの大きさと売った相手譲渡先が自家消費ではないもののgoyaの情報ページに飛びます<br><br>
+      <input type="text" name="goya" value="<%= data.join(' ') %>">
+      <input type="submit" name="送信" >
+    </form>
+
+    <% result = connection.exec("select * from crops where quality=false;") %>
+    <% data = [] %>
+
+    <% result.each do |record| %>
+      <%  data << "品質：#{record["quality"]} 譲渡先：#{record["give_for"]}" %>
+    <% end %>
+
+    <form action="goya_quality.cgi" method="POST">
+      下記のボタンを押すと、品質が悪いもののgoyaの情報ページに飛びます<br><br>
+      <input type="text" name="goya_quality" value="<%= data.join(' ') %>">
+      <input type="submit" name="送信" >
+    </form>
+
+
+  </body>
+</html>
